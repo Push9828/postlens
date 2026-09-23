@@ -1,5 +1,6 @@
 import { APITimeoutError, AuthenticationError } from "@typesafe-ai/sdk";
 import { describe, expect, it } from "vitest";
+import { PostEvaluatorError } from "../../application/post-evaluator";
 import {
   CONTENT_TYPES,
   EVALUATION_DIMENSIONS,
@@ -10,7 +11,6 @@ import {
   getJevReasonKey,
   getJevScoreKey,
   JEV_CONTENT_TYPE_KEY,
-  JevAdapterError,
   type JevDecisionClient,
 } from "./jev.types";
 import { JevPostEvaluator, selectJevLevel } from "./jev-post-evaluator";
@@ -199,7 +199,7 @@ describe("JevPostEvaluator", () => {
     await expect(
       evaluator.evaluate({ content: "draft" }),
     ).rejects.toMatchObject({
-      kind: "malformed-response",
+      kind: "invalid-response",
       message:
         "Jev returned a response that does not match the expected schema.",
     });
@@ -221,7 +221,7 @@ describe("JevPostEvaluator", () => {
 
     await expect(
       evaluator.evaluate({ content: "draft" }),
-    ).rejects.toMatchObject({ kind: "malformed-response" });
+    ).rejects.toMatchObject({ kind: "invalid-response" });
   });
 
   it("maps authentication errors to a safe adapter error", async () => {
@@ -238,7 +238,7 @@ describe("JevPostEvaluator", () => {
       .evaluate({ content: "draft" })
       .catch((caught: unknown) => caught);
 
-    expect(error).toBeInstanceOf(JevAdapterError);
+    expect(error).toBeInstanceOf(PostEvaluatorError);
     expect(error).toMatchObject({
       kind: "authentication",
       message: "Jev authentication failed.",

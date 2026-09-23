@@ -1,15 +1,15 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { PostEvaluatorError } from "../src/features/evaluation/application";
 import { scorePost } from "../src/features/evaluation/domain/scoring";
 import {
   type JevExperimentRun,
   summarizeJevExperiment,
 } from "../src/features/evaluation/experiments/jev-experiment";
 import { JEV_EVALUATION_FIXTURES } from "../src/features/evaluation/fixtures/jev-fixtures";
-import {
-  JevAdapterError,
-  type JevEvaluationDiagnostics,
-  type JevExplanationMode,
+import type {
+  JevEvaluationDiagnostics,
+  JevExplanationMode,
 } from "../src/features/evaluation/infrastructure/jev";
 import { createJevRuntime, TYPESAFE_SDK_VERSION } from "./jev-runtime";
 
@@ -65,7 +65,7 @@ async function main(): Promise<void> {
             explanationMode,
             recordedAt,
             errorKind:
-              error instanceof JevAdapterError ? error.kind : "unexpected",
+              error instanceof PostEvaluatorError ? error.kind : "unexpected",
           });
         }
 

@@ -51,28 +51,6 @@ export type JevDiagnosticsObserver = (
   diagnostics: JevEvaluationDiagnostics,
 ) => void;
 
-export type JevAdapterErrorKind =
-  | "configuration"
-  | "authentication"
-  | "timeout"
-  | "rate-limit"
-  | "provider-unavailable"
-  | "malformed-response"
-  | "aborted"
-  | "unexpected";
-
-export class JevAdapterError extends Error {
-  override readonly name = "JevAdapterError";
-
-  constructor(
-    readonly kind: JevAdapterErrorKind,
-    message: string,
-    readonly requestId?: string,
-  ) {
-    super(message);
-  }
-}
-
 export function getJevScoreKey(dimension: EvaluationDimension): string {
   return `score_${dimension}`;
 }

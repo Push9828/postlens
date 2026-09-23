@@ -1,12 +1,10 @@
+import { PostEvaluatorError } from "../src/features/evaluation/application";
 import { scorePost } from "../src/features/evaluation/domain/scoring";
 import {
   getEvaluationFixture,
   JEV_EVALUATION_FIXTURES,
 } from "../src/features/evaluation/fixtures/jev-fixtures";
-import {
-  JevAdapterError,
-  type JevEvaluationDiagnostics,
-} from "../src/features/evaluation/infrastructure/jev";
+import type { JevEvaluationDiagnostics } from "../src/features/evaluation/infrastructure/jev";
 import { createJevRuntime } from "./jev-runtime";
 
 async function main(): Promise<void> {
@@ -46,7 +44,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  if (error instanceof JevAdapterError) {
+  if (error instanceof PostEvaluatorError) {
     console.error(JSON.stringify({ kind: error.kind, message: error.message }));
   } else if (error instanceof Error) {
     console.error(error.message);

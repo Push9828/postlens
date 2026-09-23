@@ -10,7 +10,11 @@ import {
   TypeSafeError,
 } from "@typesafe-ai/sdk";
 import { z } from "zod";
-import type { PostEvaluator } from "../../application/post-evaluator";
+import {
+  type PostEvaluator,
+  PostEvaluatorError,
+  type PostEvaluatorErrorKind,
+} from "../../application/post-evaluator";
 import {
   EVALUATION_DIMENSIONS,
   EVALUATION_LEVELS,
@@ -20,13 +24,12 @@ import {
   type PostJudgments,
 } from "../../domain/evaluation.types";
 import { POSTLENS_RUBRIC } from "../../domain/rubric";
-import {
-  JevAdapterError,
-  type JevDecisionClient,
-  type JevDiagnosticsObserver,
-  type JevDimensionDiagnostics,
-  type JevEvaluationDiagnostics,
-  type JevExplanationMode,
+import type {
+  JevDecisionClient,
+  JevDiagnosticsObserver,
+  JevDimensionDiagnostics,
+  JevEvaluationDiagnostics,
+  JevExplanationMode,
 } from "./jev.types";
 import { getReasonDefinition } from "./jev-reasons";
 import {
@@ -227,14 +230,14 @@ function notifyDiagnostics(
   observer(diagnostics);
 }
 
-function mapJevError(error: unknown): JevAdapterError {
-  if (error instanceof JevAdapterError) {
+function mapJevError(error: unknown): PostEvaluatorError {
+  if (error instanceof PostEvaluatorError) {
     return error;
   }
 
   if (error instanceof z.ZodError) {
-    return new JevAdapterError(
-      "malformed-response",
+    return new PostEvaluatorError(
+      "invalid-response",
       "Jev returned a response that does not match the expected schema.",
     );
   }
@@ -243,23 +246,19 @@ function mapJevError(error: unknown): JevAdapterError {
     error instanceof AuthenticationError ||
     error instanceof PermissionDeniedError
   ) {
-    return createProviderError(
-      "authentication",
-      "Jev authentication failed.",
-      error,
-    );
+    return createProviderError("authentication", "Jev authentication failed.");
   }
 
   if (error instanceof RateLimitError) {
-    return createProviderError("rate-limit", "Jev rate limit exceeded.", error);
+    return createProviderError("rate-limit", "Jev rate limit exceeded.");
   }
 
   if (error instanceof APITimeoutError) {
-    return new JevAdapterError("timeout", "Jev request timed out.");
+    return new PostEvaluatorError("timeout", "Jev request timed out.");
   }
 
   if (error instanceof APIUserAbortError) {
-    return new JevAdapterError("aborted", "Jev request was cancelled.");
+    return new PostEvaluatorError("aborted", "Jev request was cancelled.");
   }
 
   if (
@@ -267,9 +266,8 @@ function mapJevError(error: unknown): JevAdapterError {
     error instanceof APIConnectionError
   ) {
     return createProviderError(
-      "provider-unavailable",
+      "unavailable",
       "Jev is temporarily unavailable.",
-      error,
     );
   }
 
@@ -277,31 +275,25 @@ function mapJevError(error: unknown): JevAdapterError {
     return createProviderError(
       "unexpected",
       "Jev rejected the evaluation request.",
-      error,
     );
   }
 
   if (error instanceof TypeSafeError) {
-    return new JevAdapterError(
+    return new PostEvaluatorError(
       "configuration",
       "Jev client configuration is invalid.",
     );
   }
 
-  return new JevAdapterError(
+  return new PostEvaluatorError(
     "unexpected",
     "Jev evaluation failed unexpectedly.",
   );
 }
 
 function createProviderError(
-  kind: ConstructorParameters<typeof JevAdapterError>[0],
+  kind: PostEvaluatorErrorKind,
   message: string,
-  error: APIError | APIConnectionError,
-): JevAdapterError {
-  return new JevAdapterError(
-    kind,
-    message,
-    error instanceof APIError ? error.requestId : undefined,
-  );
+): PostEvaluatorError {
+  return new PostEvaluatorError(kind, message);
 }

@@ -1,9 +1,9 @@
+import type { PostEvaluatorErrorKind } from "../application/post-evaluator";
 import type {
   EvaluationDimension,
   PostEvaluation,
 } from "../domain/evaluation.types";
 import type {
-  JevAdapterErrorKind,
   JevEvaluationDiagnostics,
   JevExplanationMode,
 } from "../infrastructure/jev/jev.types";
@@ -24,7 +24,7 @@ export interface SuccessfulJevExperimentRun extends JevExperimentRunBase {
 
 export interface FailedJevExperimentRun extends JevExperimentRunBase {
   readonly status: "failure";
-  readonly errorKind: JevAdapterErrorKind;
+  readonly errorKind: PostEvaluatorErrorKind;
 }
 
 export type JevExperimentRun =
@@ -47,7 +47,7 @@ export interface JevExperimentSummary {
     readonly largeDifferenceRate: number | null;
   };
   readonly failuresByKind: Readonly<
-    Partial<Record<JevAdapterErrorKind, number>>
+    Partial<Record<PostEvaluatorErrorKind, number>>
   >;
 }
 
@@ -223,8 +223,8 @@ function rateOrNull(count: number, total: number): number | null {
 
 function countFailures(
   runs: readonly FailedJevExperimentRun[],
-): Partial<Record<JevAdapterErrorKind, number>> {
-  const counts: Partial<Record<JevAdapterErrorKind, number>> = {};
+): Partial<Record<PostEvaluatorErrorKind, number>> {
+  const counts: Partial<Record<PostEvaluatorErrorKind, number>> = {};
 
   for (const run of runs) {
     counts[run.errorKind] = (counts[run.errorKind] ?? 0) + 1;

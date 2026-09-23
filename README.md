@@ -68,6 +68,32 @@ pnpm test
 pnpm build
 ```
 
+## Evaluation API
+
+`POST /api/evaluations` accepts a strict JSON object containing a LinkedIn
+draft:
+
+```json
+{
+  "content": "Your draft of 20 to 3,000 Unicode characters."
+}
+```
+
+The endpoint returns an application evaluation ID and the complete,
+deterministically scored `PostEvaluation`. It is stateless, sends
+`Cache-Control: no-store`, and does not persist or log raw draft content.
+
+Runtime configuration:
+
+```text
+TYPESAFE_API_KEY=required
+TYPESAFE_DEFAULT_MODEL=jev-latest
+TYPESAFE_TIMEOUT_MS=10000
+```
+
+Missing or invalid provider configuration becomes a controlled `503` response
+and does not prevent the application from building.
+
 ### Jev technical validation
 
 Copy `.env.example` to the ignored `.env` file and provide a

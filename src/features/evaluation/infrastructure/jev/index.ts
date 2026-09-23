@@ -1,10 +1,8 @@
-export {
-  JevAdapterError,
-  type JevAdapterErrorKind,
-  type JevDecisionClient,
-  type JevDiagnosticsObserver,
-  type JevEvaluationDiagnostics,
-  type JevExplanationMode,
+export type {
+  JevDecisionClient,
+  JevDiagnosticsObserver,
+  JevEvaluationDiagnostics,
+  JevExplanationMode,
 } from "./jev.types";
 export {
   JevPostEvaluator,
