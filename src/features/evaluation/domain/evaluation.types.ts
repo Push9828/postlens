@@ -44,3 +44,41 @@ export interface PostJudgments {
   readonly contentType: ContentType;
   readonly summary: string;
 }
+
+export type DimensionScore = 0 | 25 | 50 | 75 | 100;
+
+export type ScoreInterpretationId =
+  | "needs-substantial-work"
+  | "developing"
+  | "solid"
+  | "strong"
+  | "exceptional";
+
+export interface ScoreInterpretation {
+  readonly id: ScoreInterpretationId;
+  readonly label: string;
+  readonly minimumScore: number;
+  readonly maximumScore: number;
+}
+
+export interface DimensionEvaluation extends DimensionJudgment {
+  readonly score: DimensionScore;
+}
+
+export interface RubricReference {
+  readonly id: string;
+  readonly version: string;
+}
+
+export interface PostEvaluation {
+  readonly rubric: RubricReference;
+  readonly overallScore: number;
+  readonly scoreInterpretation: ScoreInterpretation;
+  readonly dimensions: Readonly<
+    Record<EvaluationDimension, DimensionEvaluation>
+  >;
+  readonly strongestDimension: EvaluationDimension;
+  readonly weakestDimension: EvaluationDimension;
+  readonly contentType: ContentType;
+  readonly summary: string;
+}
