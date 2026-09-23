@@ -52,6 +52,22 @@ Jev vs generative LLM.
 ### M8 — Launch
 README, methodology, sharing, deployment, launch content.
 
+## Development
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Before committing changes, run:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
 ## Private Content Workspace
 
 The `content/` directory is intentionally gitignored.
