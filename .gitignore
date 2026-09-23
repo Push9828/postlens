@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+/docs
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+
+# build
+dist/
+build/
+*.tsbuildinfo
+
+# test
+coverage/
+playwright-report/
+test-results/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Private content workspace
+/content/
