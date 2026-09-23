@@ -65,8 +65,33 @@ Before committing changes, run:
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm test:e2e
 pnpm build
 ```
+
+Install the Chromium browser once before running end-to-end tests:
+
+```bash
+pnpm exec playwright install chromium
+```
+
+## Analyzer Experience
+
+The root page provides the complete anonymous analyzer journey:
+
+```text
+Paste -> Analyze -> Understand
+```
+
+It shows Post Potential, the score interpretation, content type, strongest and
+weakest dimensions, a deterministic next focus, and explanations for all eight
+rubric dimensions. Results are explicitly scoped to the PostLens rubric and do
+not predict reach or virality.
+
+Drafts remain in transient browser memory only. The analyzer does not place
+them in URLs, browser storage, analytics, or client logs. Editing after an
+analysis keeps the result visible but marks it as belonging to an earlier
+version of the draft.
 
 ## Evaluation API
 
