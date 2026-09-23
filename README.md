@@ -68,6 +68,26 @@ pnpm test
 pnpm build
 ```
 
+### Jev technical validation
+
+Copy `.env.example` to the ignored `.env` file and provide a
+`TYPESAFE_API_KEY`. The scripts load `.env` automatically and intentionally
+disable retries so failure rates remain observable:
+
+```bash
+pnpm jev:smoke
+pnpm jev:experiment
+pnpm jev:batching
+```
+
+`jev:experiment` evaluates 12 synthetic, project-owned fixtures in both
+rubric-level and reason-code explanation modes. It records repeatability,
+latency, failures, scores, probabilities, token usage, model identity, and
+rubric identity under the private `content/experiments/` workspace. It never
+writes raw draft text. `jev:batching` compares all dimension questions in one
+request with parallel one-question requests across three fixtures and three
+repetitions.
+
 ## Private Content Workspace
 
 The `content/` directory is intentionally gitignored.
