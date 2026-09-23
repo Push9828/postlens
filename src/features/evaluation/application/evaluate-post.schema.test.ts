@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EvaluatePostError } from "./evaluate-post.errors";
-import {
-  countUnicodeCodePoints,
-  parseEvaluatePostInput,
-} from "./evaluate-post.schema";
+import { countUnicodeCodePoints } from "./evaluate-post.limits";
+import { parseEvaluatePostInput } from "./evaluate-post.schema";
 
 describe("parseEvaluatePostInput", () => {
   it("accepts the exact minimum and maximum Unicode lengths", () => {

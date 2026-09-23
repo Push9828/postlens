@@ -12,8 +12,8 @@ export {
   countUnicodeCodePoints,
   MAX_POST_CHARACTERS,
   MIN_POST_CHARACTERS,
-  parseEvaluatePostInput,
-} from "./evaluate-post.schema";
+} from "./evaluate-post.limits";
+export { parseEvaluatePostInput } from "./evaluate-post.schema";
 export type {
   EvaluationEvent,
   EvaluationFailedEvent,

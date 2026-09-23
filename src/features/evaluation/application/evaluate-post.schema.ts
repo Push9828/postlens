@@ -1,17 +1,15 @@
 import { z } from "zod";
 import type { EvaluatePostInput } from "../domain/evaluation.types";
 import { EvaluatePostError } from "./evaluate-post.errors";
-
-export const MIN_POST_CHARACTERS = 20;
-export const MAX_POST_CHARACTERS = 3_000;
+import {
+  countUnicodeCodePoints,
+  MAX_POST_CHARACTERS,
+  MIN_POST_CHARACTERS,
+} from "./evaluate-post.limits";
 
 const evaluatePostRequestSchema = z.strictObject({
   content: z.string(),
 });
-
-export function countUnicodeCodePoints(value: string): number {
-  return Array.from(value).length;
-}
 
 export function parseEvaluatePostInput(input: unknown): EvaluatePostInput {
   const result = evaluatePostRequestSchema.safeParse(input);

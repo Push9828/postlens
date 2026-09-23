@@ -8,10 +8,8 @@ import {
   EvaluatePostError,
   mapPostEvaluatorError,
 } from "./evaluate-post.errors";
-import {
-  countUnicodeCodePoints,
-  parseEvaluatePostInput,
-} from "./evaluate-post.schema";
+import { countUnicodeCodePoints } from "./evaluate-post.limits";
+import { parseEvaluatePostInput } from "./evaluate-post.schema";
 import type {
   EvaluationEvent,
   EvaluationObserver,
@@ -50,13 +48,14 @@ export class EvaluatePostService {
   async execute(input: unknown): Promise<EvaluatePostResult> {
     const evaluationId = this.createEvaluationId();
     const startedAt = this.now();
-    let characterCount: number | undefined;
+    let observedCharacterCount: number | undefined;
     let evaluatorStartedAt: number | undefined;
     let evaluatorDurationMs: number | undefined;
 
     try {
       const parsedInput = parseEvaluatePostInput(input);
-      characterCount = countUnicodeCodePoints(parsedInput.content);
+      const characterCount = countUnicodeCodePoints(parsedInput.content);
+      observedCharacterCount = characterCount;
       evaluatorStartedAt = this.now();
       const judgments = await this.evaluator.evaluate(parsedInput);
       evaluatorDurationMs = elapsed(this.now(), evaluatorStartedAt);
@@ -105,7 +104,9 @@ export class EvaluatePostService {
         evaluatorId: this.evaluatorId,
         totalDurationMs: elapsed(this.now(), startedAt),
         errorCode: applicationError.code,
-        ...(characterCount === undefined ? {} : { characterCount }),
+        ...(observedCharacterCount === undefined
+          ? {}
+          : { characterCount: observedCharacterCount }),
         ...(evaluatorDurationMs === undefined ? {} : { evaluatorDurationMs }),
       });
       throw applicationError;
