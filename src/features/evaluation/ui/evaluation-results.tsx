@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { DownloadShareCard } from "../../sharing/download-share-card";
 import type { EvaluatePostResult } from "../application/evaluate-post";
 import { EVALUATION_DIMENSIONS } from "../domain/evaluation.types";
 import { DimensionResult } from "./dimension-result";
@@ -87,6 +88,15 @@ export function EvaluationResults({
           This score describes the current PostLens rubric. It does not predict
           reach, engagement, or virality.
         </p>
+
+        <div className="mt-5">
+          <DownloadShareCard evaluation={evaluation} disabled={isStale} />
+          {isStale ? (
+            <p className="mt-2 text-xs text-[var(--text-subtle)]">
+              Analyze the edited draft before downloading its score card.
+            </p>
+          ) : null}
+        </div>
 
         <dl className="mt-7 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg bg-[var(--surface-muted)] px-4 py-3">

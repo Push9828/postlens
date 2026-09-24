@@ -23,6 +23,8 @@ interface Props {
   readonly evaluationResult: EvaluatePostResult;
   readonly isStale: boolean;
   readonly onUse: (text: string) => void;
+  readonly hasExistingVersionB: boolean;
+  readonly onCompareRevision: (text: string) => void;
 }
 
 export function ImprovementPanel({
@@ -31,6 +33,8 @@ export function ImprovementPanel({
   evaluationResult,
   isStale,
   onUse,
+  hasExistingVersionB,
+  onCompareRevision,
 }: Props) {
   const [runningAction, setRunningAction] = useState<ImprovementAction | null>(
     null,
@@ -46,7 +50,7 @@ export function ImprovementPanel({
   useEffect(() => () => controller.current?.abort(), []);
 
   const generate = async (action: ImprovementAction) => {
-    if (isStale) return;
+    if (isStale || runningAction !== null) return;
     controller.current?.abort();
     const nextController = new AbortController();
     controller.current = nextController;
@@ -130,7 +134,7 @@ export function ImprovementPanel({
           <button
             key={action}
             type="button"
-            disabled={isStale}
+            disabled={isStale || runningAction !== null}
             onClick={() => generate(action)}
             className="min-h-11 rounded-lg border border-[var(--border-strong)] bg-[var(--input)] px-4 py-2 text-left text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-55"
           >
@@ -218,7 +222,23 @@ export function ImprovementPanel({
               >
                 Use in editor
               </button>
+              <button
+                type="button"
+                disabled={suggestionStale}
+                onClick={() => onCompareRevision(result.revisedText)}
+                className="min-h-11 rounded-lg border border-[var(--border-strong)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {hasExistingVersionB
+                  ? "Replace Version B and compare"
+                  : "Compare with original"}
+              </button>
             </div>
+            {hasExistingVersionB ? (
+              <p className="mt-2 text-xs text-[var(--text-subtle)]">
+                This replaces the current Version B draft. Comparison starts
+                only when you submit both drafts.
+              </p>
+            ) : null}
             {copyMessage ? (
               <p className="mt-2 text-sm text-[var(--text-muted)]">
                 {copyMessage}

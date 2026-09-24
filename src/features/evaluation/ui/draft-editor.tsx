@@ -120,7 +120,8 @@ export function DraftEditor({
 
       <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-5 text-[var(--text-subtle)]">
-          Your draft is analyzed on request and is not saved.
+          Your draft is analyzed on request and is not saved. Press Ctrl+Enter
+          or ⌘+Enter to analyze.
         </p>
         <button
           type="submit"

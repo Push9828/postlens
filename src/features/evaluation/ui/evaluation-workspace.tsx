@@ -31,7 +31,16 @@ export function EvaluationWorkspace() {
         </button>
       </fieldset>
       {mode === "analyze" ? (
-        <Analyzer content={versionA} onContentChange={setVersionA} />
+        <Analyzer
+          content={versionA}
+          onContentChange={setVersionA}
+          hasExistingVersionB={versionB.trim() !== ""}
+          onCompareRevision={(original, revision) => {
+            setVersionA(original);
+            setVersionB(revision);
+            setMode("compare");
+          }}
+        />
       ) : (
         <PostBattle
           versionA={versionA}

@@ -20,6 +20,7 @@ import {
 import { EvaluationErrorPanel } from "./evaluation-error-panel";
 import { EvaluationLoading } from "./evaluation-loading";
 import { EvaluationResults } from "./evaluation-results";
+import { SAMPLE_DRAFTS } from "./sample-drafts";
 
 const FIELD_ERROR_CODES = new Set([
   "INVALID_REQUEST",
@@ -30,9 +31,16 @@ const FIELD_ERROR_CODES = new Set([
 interface AnalyzerProps {
   readonly content: string;
   readonly onContentChange: (content: string) => void;
+  readonly hasExistingVersionB: boolean;
+  readonly onCompareRevision: (original: string, revision: string) => void;
 }
 
-export function Analyzer({ content, onContentChange }: AnalyzerProps) {
+export function Analyzer({
+  content,
+  onContentChange,
+  hasExistingVersionB,
+  onCompareRevision,
+}: AnalyzerProps) {
   const [showEmptyError, setShowEmptyError] = useState(false);
   const [state, dispatch] = useReducer(analyzerReducer, INITIAL_ANALYZER_STATE);
   const requestSequence = useRef(0);
@@ -144,6 +152,32 @@ export function Analyzer({ content, onContentChange }: AnalyzerProps) {
             textareaRef.current?.focus();
           }}
         />
+        {content.trim() === "" ? (
+          <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">
+              Try a sample draft
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-subtle)]">
+              Project-written examples. Choosing one fills the editor and does
+              not analyze it.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {SAMPLE_DRAFTS.map((sample) => (
+                <button
+                  key={sample.label}
+                  type="button"
+                  onClick={() => {
+                    handleContentChange(sample.content);
+                    textareaRef.current?.focus();
+                  }}
+                  className="min-h-11 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--input)]"
+                >
+                  {sample.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="min-w-0" aria-live="off">
@@ -166,6 +200,10 @@ export function Analyzer({ content, onContentChange }: AnalyzerProps) {
                 handleContentChange(text);
                 textareaRef.current?.focus();
               }}
+              hasExistingVersionB={hasExistingVersionB}
+              onCompareRevision={(revision) =>
+                onCompareRevision(state.submittedContent, revision)
+              }
             />
           </>
         ) : null}

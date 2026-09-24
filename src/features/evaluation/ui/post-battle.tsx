@@ -197,7 +197,8 @@ export function PostBattle({
         </div>
         <div className="mt-5 flex flex-col gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs leading-5 text-[var(--text-subtle)]">
-            Both drafts are evaluated on request and are not saved.
+            Both drafts are evaluated on request and are not saved. Press
+            Ctrl+Enter or ⌘+Enter to compare.
           </p>
           <button
             type="submit"

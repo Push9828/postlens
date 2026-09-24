@@ -2,6 +2,7 @@ import type {
   DimensionEvaluation,
   EvaluationDimension,
 } from "../domain/evaluation.types";
+import { POSTLENS_RUBRIC } from "../domain/rubric";
 import { DIMENSION_LABELS } from "./score-copy";
 
 interface DimensionResultProps {
@@ -51,6 +52,18 @@ export function DimensionResult({
       <p className="mt-3 max-w-[58ch] text-sm leading-6 text-[var(--text-muted)]">
         {evaluation.explanation}
       </p>
+      <details className="mt-3 text-sm text-[var(--text-muted)]">
+        <summary className="w-fit cursor-pointer font-medium text-[var(--accent-text)]">
+          How this is judged
+        </summary>
+        <p className="mt-2 max-w-[58ch] leading-6">
+          {POSTLENS_RUBRIC.dimensions[dimension].question}
+        </p>
+        <p className="mt-1 max-w-[58ch] leading-6">
+          Level {evaluation.level} of 4:{" "}
+          {POSTLENS_RUBRIC.dimensions[dimension].levels[evaluation.level]}
+        </p>
+      </details>
     </li>
   );
 }
