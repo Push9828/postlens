@@ -134,6 +134,30 @@ TYPESAFE_TIMEOUT_MS=10000
 Missing or invalid provider configuration becomes a controlled `503` response
 and does not prevent the application from building.
 
+## Targeted Improvement
+
+After analysis, choose `Improve this post`, `Improve the hook`, `Improve the
+ending`, or `Improve the weakest areas`. The proposed draft appears beside the
+unchanged rubric result. You can copy it or explicitly use it in the editor;
+the revised draft has no new score until you analyze it. Review facts and voice
+before posting.
+
+`POST /api/improvements` accepts a strict JSON object with `content`, `action`,
+`evaluationId`, and the analyzer's `evaluation` result. The server checks the
+current rubric identity and recomputes all scores from the submitted levels.
+Because this endpoint is stateless, these checks establish internal consistency
+but do not prove that an evaluation belongs to the supplied draft. No draft or
+suggestion is stored by PostLens. The endpoint sends `Cache-Control: no-store`.
+
+Generation uses a server-only OpenAI Responses API adapter with structured
+output. Configure `OPENAI_API_KEY`, optionally
+`OPENAI_IMPROVEMENT_MODEL` (default `gpt-4o-mini`) and
+`OPENAI_IMPROVEMENT_TIMEOUT_MS` (default `20000`). Missing configuration returns
+a controlled `503`. The model only proposes text; application code chooses
+weakest dimensions and assembles paragraph edits, and the scoring engine never
+uses generated output. The default model is a documented starting choice;
+live latency and quality checks still require an API key.
+
 ### Jev technical validation
 
 Copy `.env.example` to the ignored `.env` file and provide a
