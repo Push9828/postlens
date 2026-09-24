@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Analyzer } from "./analyzer";
-import { PostBattle } from "./post-battle";
+import { V2Analyzer } from "../v2/ui/analyzer";
+import { V2PostBattle } from "../v2/ui/post-battle";
 
 export function EvaluationWorkspace() {
   const [mode, setMode] = useState<"analyze" | "compare">("analyze");
@@ -31,7 +31,7 @@ export function EvaluationWorkspace() {
         </button>
       </fieldset>
       {mode === "analyze" ? (
-        <Analyzer
+        <V2Analyzer
           content={versionA}
           onContentChange={setVersionA}
           hasExistingVersionB={versionB.trim() !== ""}
@@ -42,7 +42,7 @@ export function EvaluationWorkspace() {
           }}
         />
       ) : (
-        <PostBattle
+        <V2PostBattle
           versionA={versionA}
           versionB={versionB}
           onVersionAChange={setVersionA}

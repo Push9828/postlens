@@ -30,8 +30,8 @@ export default function Home() {
             Know what is weak before you publish.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-[var(--text-muted)]">
-            See how your draft holds up against eight clear dimensions before
-            you publish.
+            See how your draft holds up against nine clear dimensions before you
+            publish.
           </p>
         </section>
 

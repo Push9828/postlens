@@ -13,7 +13,7 @@ export function EvaluationLoading() {
       <div className="skeleton mt-3 h-4 w-4/5 rounded" />
 
       <div className="mt-9 grid gap-x-8 sm:grid-cols-2" aria-hidden="true">
-        {Array.from({ length: 8 }, (_, index) => (
+        {Array.from({ length: 9 }, (_, index) => (
           <div
             className="border-t border-[var(--border)] py-5"
             // Skeleton items have no semantic identity.
