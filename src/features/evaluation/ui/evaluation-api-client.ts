@@ -1,64 +1,9 @@
 import { z } from "zod";
 import type { EvaluatePostResult } from "../application/evaluate-post";
 import type { EvaluatePostErrorCode } from "../application/evaluate-post.errors";
-import {
-  CONTENT_TYPES,
-  EVALUATION_DIMENSIONS,
-  EVALUATION_LEVELS,
-} from "../domain/evaluation.types";
+import { postEvaluationSchema } from "../application/post-evaluation.schema";
 
-const dimensionScoreSchema = z.union([
-  z.literal(0),
-  z.literal(25),
-  z.literal(50),
-  z.literal(75),
-  z.literal(100),
-]);
-
-const dimensionEvaluationSchema = z.strictObject({
-  level: z.union(EVALUATION_LEVELS.map((level) => z.literal(level))),
-  explanation: z.string(),
-  confidence: z.number().min(0).max(1).optional(),
-  score: dimensionScoreSchema,
-});
-
-const dimensionShape = Object.fromEntries(
-  EVALUATION_DIMENSIONS.map((dimension) => [
-    dimension,
-    dimensionEvaluationSchema,
-  ]),
-) as Record<
-  (typeof EVALUATION_DIMENSIONS)[number],
-  typeof dimensionEvaluationSchema
->;
-
-const evaluationDimensionSchema = z.enum(EVALUATION_DIMENSIONS);
-const contentTypeSchema = z.enum(CONTENT_TYPES);
-
-export const postEvaluationSchema = z.strictObject({
-  rubric: z.strictObject({
-    id: z.string().min(1),
-    version: z.string().min(1),
-  }),
-  overallScore: z.number().int().min(0).max(100),
-  scoreInterpretation: z.strictObject({
-    id: z.enum([
-      "needs-substantial-work",
-      "developing",
-      "solid",
-      "strong",
-      "exceptional",
-    ]),
-    label: z.string().min(1),
-    minimumScore: z.number().int().min(0).max(100),
-    maximumScore: z.number().int().min(0).max(100),
-  }),
-  dimensions: z.strictObject(dimensionShape),
-  strongestDimension: evaluationDimensionSchema,
-  weakestDimension: evaluationDimensionSchema,
-  contentType: contentTypeSchema,
-  summary: z.string().min(1),
-});
+export { postEvaluationSchema } from "../application/post-evaluation.schema";
 
 const successResponseSchema = z.strictObject({
   evaluationId: z.string().uuid(),
