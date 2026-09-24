@@ -23,6 +23,7 @@ import {
   type EvaluationLevel,
   type PostJudgments,
 } from "../../domain/evaluation.types";
+import { createJudgmentSummary } from "../../domain/judgment-summary";
 import { POSTLENS_RUBRIC } from "../../domain/rubric";
 import type {
   JevDecisionClient,
@@ -107,7 +108,7 @@ export class JevPostEvaluator implements PostEvaluator {
     return {
       dimensions,
       contentType: response.contentType,
-      summary: createSummary(levels, response.contentType),
+      summary: createJudgmentSummary(levels, response.contentType),
     };
   }
 }
@@ -146,33 +147,6 @@ function getExplanation(
   }
 
   return POSTLENS_RUBRIC.dimensions[dimension].levels[level];
-}
-
-function createSummary(
-  levels: Readonly<Record<EvaluationDimension, EvaluationLevel>>,
-  contentType: PostJudgments["contentType"],
-): string {
-  const strongest = selectDimension(levels, "strongest");
-  const weakest = selectDimension(levels, "weakest");
-
-  return `This ${contentType} draft is strongest in ${POSTLENS_RUBRIC.dimensions[strongest].label} and weakest in ${POSTLENS_RUBRIC.dimensions[weakest].label} against the current rubric.`;
-}
-
-function selectDimension(
-  levels: Readonly<Record<EvaluationDimension, EvaluationLevel>>,
-  direction: "strongest" | "weakest",
-): EvaluationDimension {
-  return EVALUATION_DIMENSIONS.reduce((selected, candidate) => {
-    if (direction === "strongest" && levels[candidate] > levels[selected]) {
-      return candidate;
-    }
-
-    if (direction === "weakest" && levels[candidate] < levels[selected]) {
-      return candidate;
-    }
-
-    return selected;
-  });
 }
 
 function createDiagnostics(
