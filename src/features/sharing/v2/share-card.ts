@@ -8,6 +8,7 @@ import {
 export function drawV2ShareCard(
   canvas: HTMLCanvasElement,
   evaluation: V2PostEvaluation,
+  brandIcon: HTMLImageElement,
 ): void {
   canvas.width = 1200;
   canvas.height = 630;
@@ -15,11 +16,10 @@ export function drawV2ShareCard(
   if (!context) throw new Error("Canvas rendering is unavailable.");
   context.fillStyle = "#101828";
   context.fillRect(0, 0, 1200, 630);
-  context.fillStyle = "#84adff";
-  context.fillRect(72, 66, 5, 40);
+  context.drawImage(brandIcon, 66, 49, 58, 58);
   context.fillStyle = "#ffffff";
   context.font = "700 36px Arial, sans-serif";
-  context.fillText("PostLens", 96, 100);
+  context.fillText("PostLens", 140, 100);
   context.fillStyle = "#b8c7dc";
   context.font = "400 19px Arial, sans-serif";
   context.fillText(

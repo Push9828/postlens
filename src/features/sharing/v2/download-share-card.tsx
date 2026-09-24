@@ -14,8 +14,11 @@ export function V2DownloadShareCard({
   const [message, setMessage] = useState("");
   const download = async () => {
     try {
+      const brandIcon = new Image();
+      brandIcon.src = "/favicon.ico";
+      await brandIcon.decode();
       const canvas = document.createElement("canvas");
-      drawV2ShareCard(canvas, evaluation);
+      drawV2ShareCard(canvas, evaluation, brandIcon);
       const image = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, "image/png"),
       );

@@ -104,6 +104,32 @@ html {
   background: var(--background);
 }
 
+.theme-logo-light {
+  display: block;
+}
+
+.theme-logo-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-logo-light {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]) .theme-logo-dark {
+    display: block;
+  }
+}
+
+:root[data-theme="dark"] .theme-logo-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-logo-dark {
+  display: block;
+}
+
 body {
   margin: 0;
   min-width: 320px;

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { EvaluationWorkspace } from "@/features/evaluation/ui/evaluation-workspace";
 import { ThemeToggle } from "@/features/theme/ui/theme-toggle";
 
@@ -8,9 +9,24 @@ export default function Home() {
         <div className="mx-auto flex min-h-16 w-full max-w-[1200px] items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
           <a
             href="#main-content"
-            className="text-lg font-semibold tracking-[-0.03em] text-[var(--text-primary)]"
+            className="inline-flex h-12 w-36 items-center"
+            aria-label="PostLens home"
           >
-            PostLens
+            <Image
+              src="/light-mode-logo.png"
+              alt="PostLens"
+              width={144}
+              height={48}
+              className="theme-logo-light h-12 w-36 object-contain object-left"
+            />
+            <Image
+              src="/dark-mode-logo.png"
+              alt=""
+              aria-hidden="true"
+              width={144}
+              height={48}
+              className="theme-logo-dark h-12 w-36 object-contain object-left"
+            />
           </a>
           <div className="flex items-center gap-4">
             <p className="hidden text-sm text-[var(--text-subtle)] sm:block">

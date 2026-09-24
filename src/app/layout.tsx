@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: "PostLens | Evaluate your LinkedIn draft",
   description:
     "Evaluate a LinkedIn draft against a transparent eight-dimension content rubric.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 interface RootLayoutProps {
