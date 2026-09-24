@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { EVALUATION_DIMENSIONS } from "../../evaluation/domain/evaluation.types";
+import { POSTLENS_RUBRIC } from "../../evaluation/domain/rubric";
 import type { ImprovementContext } from "../application/post-improver";
 import { OpenAIPostImprover } from "./openai-post-improver";
 
@@ -7,6 +9,20 @@ const context: ImprovementContext = {
   action: "hook",
   rubric: { id: "postlens-linkedin", version: "1.0.0" },
   contentType: "case-study",
+  overallScore: 50,
+  dimensions: Object.fromEntries(
+    EVALUATION_DIMENSIONS.map((dimension) => [
+      dimension,
+      {
+        level: 2,
+        score: 50,
+        explanation: `${dimension} needs work.`,
+        criterion: POSTLENS_RUBRIC.dimensions[dimension],
+      },
+    ]),
+  ) as ImprovementContext["dimensions"],
+  strongestDimension: "hook",
+  weakestDimension: "hook",
   focus: [
     {
       dimension: "hook",

@@ -2,20 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { EvaluatePostResult } from "../../evaluation/application/evaluate-post";
+import { EVALUATION_DIMENSIONS } from "../../evaluation/domain/evaluation.types";
 import { DIMENSION_LABELS } from "../../evaluation/ui/score-copy";
 import type { ImprovementResult } from "../application/improve-post";
-import type { ImprovementAction } from "../domain/improvement";
 import {
   ImprovementClientError,
   requestImprovement,
 } from "./improvement-api-client";
-
-const ACTION_LABELS: readonly [ImprovementAction, string][] = [
-  ["whole-post", "Improve this post"],
-  ["hook", "Improve the hook"],
-  ["ending", "Improve the ending"],
-  ["weakest-areas", "Improve the weakest areas"],
-];
 
 interface Props {
   readonly content: string;
@@ -36,36 +29,32 @@ export function ImprovementPanel({
   hasExistingVersionB,
   onCompareRevision,
 }: Props) {
-  const [runningAction, setRunningAction] = useState<ImprovementAction | null>(
-    null,
-  );
+  const [running, setRunning] = useState(false);
   const [result, setResult] = useState<ImprovementResult | null>(null);
   const [error, setError] = useState<ImprovementClientError | null>(null);
   const [copyMessage, setCopyMessage] = useState("");
   const sequence = useRef(0);
   const controller = useRef<AbortController | null>(null);
-  const actionRef = useRef<ImprovementAction | null>(null);
   const requestedContent = useRef<string | null>(null);
 
   useEffect(() => () => controller.current?.abort(), []);
 
-  const generate = async (action: ImprovementAction) => {
-    if (isStale || runningAction !== null) return;
+  const generate = async () => {
+    if (isStale || running) return;
     controller.current?.abort();
     const nextController = new AbortController();
     controller.current = nextController;
     sequence.current += 1;
     const requestId = sequence.current;
-    actionRef.current = action;
     requestedContent.current = submittedContent;
-    setRunningAction(action);
+    setRunning(true);
     setResult(null);
     setError(null);
     setCopyMessage("");
     try {
       const response = await requestImprovement(
         submittedContent,
-        action,
+        "whole-post",
         evaluationResult,
         { signal: nextController.signal },
       );
@@ -83,7 +72,7 @@ export function ImprovementPanel({
         if (safeError.kind !== "aborted") setError(safeError);
       }
     } finally {
-      if (sequence.current === requestId) setRunningAction(null);
+      if (sequence.current === requestId) setRunning(false);
     }
   };
 
@@ -112,47 +101,31 @@ export function ImprovementPanel({
         id="improvement-heading"
         className="text-xl font-semibold text-[var(--text-primary)]"
       >
-        Targeted improvement
+        Improve your post
       </h2>
       <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-        Choose a focus after reviewing the rubric result. A suggestion has no
-        score until you analyze it, and it may score higher or lower than the
-        original.
+        Get a revised draft using all eight rubric dimensions. We check it
+        against the original and show the score and dimension changes.
       </p>
       {isStale ? (
         <p className="mt-3 text-sm text-[var(--warning-text)]">
           Analyze the current draft before requesting another improvement.
         </p>
       ) : null}
-      {submittedContent.split(/\r?\n\s*\r?\n/).filter(Boolean).length === 1 ? (
-        <p className="mt-2 text-xs text-[var(--text-subtle)]">
-          This draft has one paragraph, so a hook or ending edit may change the
-          whole draft.
-        </p>
-      ) : null}
-      <div className="mt-5 grid gap-2 sm:grid-cols-2">
-        {ACTION_LABELS.map(([action, label]) => (
-          <button
-            key={action}
-            type="button"
-            disabled={isStale || runningAction !== null}
-            onClick={() => generate(action)}
-            className="min-h-11 rounded-lg border border-[var(--border-strong)] bg-[var(--input)] px-4 py-2 text-left text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-55"
-          >
-            {runningAction === action
-              ? `Improving ${action === "whole-post" ? "post" : action === "weakest-areas" ? "weakest areas" : action}...`
-              : label}
-          </button>
-        ))}
+      <div className="mt-5">
+        <button
+          type="button"
+          disabled={isStale || running}
+          onClick={generate}
+          className="min-h-11 rounded-lg bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-[var(--accent-contrast)] disabled:cursor-not-allowed disabled:opacity-55"
+        >
+          {running ? "Improving post..." : "Improve post"}
+        </button>
       </div>
       <div className="mt-5" aria-live="polite" aria-atomic="true">
-        {runningAction ? (
+        {running ? (
           <p className="text-sm text-[var(--text-muted)]">
-            Generating a suggestion for{" "}
-            {ACTION_LABELS.find(
-              ([action]) => action === runningAction,
-            )?.[1].toLowerCase()}
-            .
+            Revising the post and checking it against the rubric.
           </p>
         ) : null}
         {error ? (
@@ -161,10 +134,10 @@ export function ImprovementPanel({
             className="rounded-lg border border-[var(--error-border)] bg-[var(--error-surface)] p-4 text-sm text-[var(--error)]"
           >
             <p>{error.message}</p>
-            {error.retryable && !isStale && actionRef.current ? (
+            {error.retryable && !isStale ? (
               <button
                 type="button"
-                onClick={() => generate(actionRef.current as ImprovementAction)}
+                onClick={generate}
                 className="mt-3 font-semibold underline"
               >
                 Try again
@@ -175,7 +148,7 @@ export function ImprovementPanel({
         {result?.status === "no-safe-change" ? (
           <div className="rounded-lg border border-[var(--warning-border)] bg-[var(--warning-surface)] p-4 text-sm">
             <p className="font-semibold text-[var(--warning-text)]">
-              No safe change found
+              No verified improvement found
             </p>
             <p className="mt-1 text-[var(--text-muted)]">{result.reason}</p>
           </div>
@@ -186,14 +159,35 @@ export function ImprovementPanel({
               Suggested draft
             </h3>
             <p className="mt-2 text-sm text-[var(--text-muted)]">
-              {ACTION_LABELS.find(([action]) => action === result.action)?.[1]}
-              {result.focusDimensions.length
-                ? ` · Focus: ${result.focusDimensions.map((dimension) => DIMENSION_LABELS[dimension]).join(", ")}`
-                : ""}
+              Focus: improving the post as a whole
             </p>
             <p className="mt-2 text-sm text-[var(--text-muted)]">
               {result.changeNote}
             </p>
+            {result.verification ? (
+              <div className="mt-2 text-sm text-[var(--text-primary)]">
+                <p className="font-medium">
+                  Rubric check: {result.verification.originalScore} →{" "}
+                  {result.verification.revisedScore} Post Potential (+
+                  {result.verification.overallDelta}).
+                </p>
+                <p className="mt-1 text-[var(--text-muted)]">
+                  {EVALUATION_DIMENSIONS.filter(
+                    (dimension) =>
+                      result.verification?.dimensionDeltas[dimension] !== 0,
+                  )
+                    .map((dimension) => {
+                      const delta =
+                        result.verification?.dimensionDeltas[dimension] ?? 0;
+                      return `${DIMENSION_LABELS[dimension]} ${delta > 0 ? "+" : ""}${delta}`;
+                    })
+                    .join(" · ")}
+                </p>
+                <p className="mt-1 text-[var(--text-muted)]">
+                  Scores can vary on a later analysis.
+                </p>
+              </div>
+            ) : null}
             {suggestionStale ? (
               <p className="mt-2 text-sm font-medium text-[var(--warning-text)]">
                 This suggestion belongs to the previously analyzed draft.

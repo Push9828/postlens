@@ -4,6 +4,7 @@ import type {
   EvaluationLevel,
   RubricReference,
 } from "../../evaluation/domain/evaluation.types";
+import type { DimensionRubric } from "../../evaluation/domain/rubric";
 import type { ImprovementAction } from "../domain/improvement";
 
 export interface ImprovementFocus {
@@ -12,11 +13,24 @@ export interface ImprovementFocus {
   readonly explanation: string;
 }
 
+export interface ImprovementDimension {
+  readonly level: EvaluationLevel;
+  readonly score: number;
+  readonly explanation: string;
+  readonly criterion: DimensionRubric;
+}
+
 export interface ImprovementContext {
   readonly content: string;
   readonly action: ImprovementAction;
   readonly rubric: RubricReference;
   readonly contentType: ContentType;
+  readonly overallScore: number;
+  readonly dimensions: Readonly<
+    Record<EvaluationDimension, ImprovementDimension>
+  >;
+  readonly strongestDimension: EvaluationDimension;
+  readonly weakestDimension: EvaluationDimension;
   readonly focus: readonly ImprovementFocus[];
   readonly targetText?: string;
 }

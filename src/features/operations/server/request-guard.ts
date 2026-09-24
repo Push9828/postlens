@@ -14,7 +14,7 @@ const POLICY: Record<
 > = {
   evaluation: { bytes: 16_384, minute: 8, hour: 40, cost: 1 },
   comparison: { bytes: 32_768, minute: 4, hour: 20, cost: 2 },
-  improvement: { bytes: 65_536, minute: 4, hour: 20, cost: 1 },
+  improvement: { bytes: 65_536, minute: 4, hour: 20, cost: 3 },
 };
 
 // Each request checks and increments all four counters in one Redis operation.

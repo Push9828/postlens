@@ -1,8 +1,11 @@
 import "server-only";
 
 import { z } from "zod";
+import { POSTLENS_RUBRIC } from "../../evaluation/domain/rubric";
+import { getComparisonService } from "../../evaluation/server/create-comparison-service";
 import { ImprovePostService } from "../application/improve-post";
 import { ImprovementError } from "../application/improvement-error";
+import { VerifyImprovementService } from "../application/verify-improvement";
 import { OpenAIPostImprover } from "../infrastructure/openai-post-improver";
 
 const configSchema = z.object({
@@ -16,9 +19,9 @@ const configSchema = z.object({
     .default(20_000),
 });
 
-let service: ImprovePostService | undefined;
+let service: VerifyImprovementService | undefined;
 
-export function getImprovementService(): ImprovePostService {
+export function getImprovementService(): VerifyImprovementService {
   if (service) return service;
   const config = configSchema.safeParse({
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
@@ -27,18 +30,39 @@ export function getImprovementService(): ImprovePostService {
       process.env.OPENAI_IMPROVEMENT_TIMEOUT_MS || undefined,
   });
   if (!config.success) throw new ImprovementError("IMPROVEMENT_UNAVAILABLE");
-  service = new ImprovePostService(
-    new OpenAIPostImprover({
-      apiKey: config.data.OPENAI_API_KEY,
-      model: config.data.OPENAI_IMPROVEMENT_MODEL,
-      timeoutMs: config.data.OPENAI_IMPROVEMENT_TIMEOUT_MS,
-    }),
+  let comparer: ReturnType<typeof getComparisonService>;
+  try {
+    comparer = getComparisonService();
+  } catch {
+    throw new ImprovementError("IMPROVEMENT_UNAVAILABLE");
+  }
+  service = new VerifyImprovementService(
+    new ImprovePostService(
+      new OpenAIPostImprover({
+        apiKey: config.data.OPENAI_API_KEY,
+        model: config.data.OPENAI_IMPROVEMENT_MODEL,
+        timeoutMs: config.data.OPENAI_IMPROVEMENT_TIMEOUT_MS,
+      }),
+      (event) =>
+        console.info(
+          JSON.stringify({
+            type: "improvement",
+            provider: "openai",
+            model: config.data.OPENAI_IMPROVEMENT_MODEL,
+            ...event,
+          }),
+        ),
+    ),
+    comparer,
     (event) =>
       console.info(
         JSON.stringify({
-          type: "improvement",
-          provider: "openai",
-          model: config.data.OPENAI_IMPROVEMENT_MODEL,
+          type: "improvement.verification",
+          generatorModel: config.data.OPENAI_IMPROVEMENT_MODEL,
+          evaluator: "jev",
+          evaluatorModel:
+            process.env.TYPESAFE_DEFAULT_MODEL?.trim() || "jev-latest",
+          rubric: POSTLENS_RUBRIC.version,
           ...event,
         }),
       ),

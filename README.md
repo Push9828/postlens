@@ -100,8 +100,8 @@ version of the draft.
 
 An empty editor offers two project-written sample drafts. Each dimension can
 show its rubric question and selected level. A current result can be downloaded
-as an SVG score card or copied as a text summary. Both contain only rubric
-results and a reminder that the score is not a performance prediction.
+as a 1200×630 PNG score card. The image contains only rubric results and a
+reminder that the score is not a performance prediction.
 
 ## Post Battle
 
@@ -160,19 +160,24 @@ that either provider is reachable.
 
 The three provider-backed POST routes have byte limits and shared per-client
 minute/hour quotas. Analysis counts as one unit, comparison as two, and
-improvement as one. Requests over quota return `429` and `Retry-After`;
+improvement as three (one generation and two evaluations). Requests over quota return `429` and `Retry-After`;
 oversized requests return `413`. Both responses use safe application errors.
 Set provider-side spend caps before opening public traffic. Review Vercel and
 Redis log retention and access because infrastructure logs can have different
 capture defaults from the application's metadata-only events.
 
-## Targeted Improvement
+## Post Improvement
 
-After analysis, choose `Improve this post`, `Improve the hook`, `Improve the
-ending`, or `Improve the weakest areas`. The proposed draft appears beside the
-unchanged rubric result. You can copy it or explicitly use it in the editor;
-the revised draft has no new score until you analyze it. Review facts and voice
-before posting.
+After analysis, choose `Improve post`. The generator receives all eight
+dimension scores, explanations, weights, and rubric criteria. It can revise the
+whole draft while preserving the author's facts and voice. PostLens evaluates
+the original and proposed drafts together, then shows a suggestion only when
+the paired check gains at least three points with at most one one-level
+dimension regression.
+If the candidate does not pass, it reports that no verified improvement was
+found. A suggestion shows the paired check scores and dimension changes; the existing analysis stays
+visible until you analyze again. Evaluator judgments can vary between runs.
+Review facts and voice before posting.
 
 `POST /api/improvements` accepts a strict JSON object with `content`, `action`,
 `evaluationId`, and the analyzer's `evaluation` result. The server checks the
@@ -185,10 +190,11 @@ Generation uses a server-only OpenAI Responses API adapter with structured
 output. Configure `OPENAI_API_KEY`, optionally
 `OPENAI_IMPROVEMENT_MODEL` (default `gpt-4o-mini`) and
 `OPENAI_IMPROVEMENT_TIMEOUT_MS` (default `20000`). Missing configuration returns
-a controlled `503`. The model only proposes text; application code chooses
-weakest dimensions and assembles paragraph edits, and the scoring engine never
-uses generated output. The default model is a documented starting choice;
-live latency and quality checks still require an API key.
+a controlled `503`. The model only proposes text. Jev evaluates the candidate
+and original; deterministic application code calculates and checks the score.
+The default model is a documented starting choice. Metadata-only verification
+events capture acceptance, score changes, dimension changes, and latency so
+quality can be assessed without storing draft text.
 
 ### Jev technical validation
 

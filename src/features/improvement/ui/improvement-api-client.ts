@@ -25,6 +25,19 @@ const successSchema = z.discriminatedUnion("status", [
     target: z.enum(["hook", "ending"]).optional(),
     changeNote: z.string().min(1).max(240),
     reviewRequired: z.literal(true),
+    verification: z.strictObject({
+      originalScore: z.number().int().min(0).max(100),
+      revisedScore: z.number().int().min(0).max(100),
+      overallDelta: z.number().int().positive().max(100),
+      dimensionDeltas: z.strictObject(
+        Object.fromEntries(
+          EVALUATION_DIMENSIONS.map((dimension) => [
+            dimension,
+            z.number().int().min(-100).max(100),
+          ]),
+        ) as Record<(typeof EVALUATION_DIMENSIONS)[number], z.ZodNumber>,
+      ),
+    }),
   }),
   z.strictObject({
     improvementId: z.string().uuid(),

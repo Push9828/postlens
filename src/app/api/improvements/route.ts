@@ -3,7 +3,7 @@ import { handleImprovementRequest } from "@/features/improvement/server/improvem
 import { guardProviderRequest } from "@/features/operations/server/request-guard";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<Response> {
   const guarded = await guardProviderRequest(request, "improvement");

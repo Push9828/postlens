@@ -37,8 +37,16 @@ const evaluation = {
     summary: "The draft can be clearer against the current rubric.",
   },
 };
+const verification = {
+  originalScore: 50,
+  revisedScore: 55,
+  overallDelta: 5,
+  dimensionDeltas: Object.fromEntries(
+    Object.keys(dimensions).map((key) => [key, key === "hook" ? 25 : 0]),
+  ),
+};
 
-test("offers all four actions, preserves the score, and uses a suggestion only on click", async ({
+test("offers one improvement action, preserves the score, and uses a suggestion only on click", async ({
   page,
 }) => {
   const requests: string[] = [];
@@ -60,9 +68,9 @@ test("offers all four actions, preserves the score, and uses a suggestion only o
         action: body.action,
         revisedText: revised,
         focusDimensions: ["hook"],
-        ...(body.action === "hook" ? { target: "hook" } : {}),
         changeNote: "Clarified the opening.",
         reviewRequired: true,
+        verification,
       },
     });
   });
@@ -70,20 +78,13 @@ test("offers all four actions, preserves the score, and uses a suggestion only o
   const editor = page.getByLabel("LinkedIn draft");
   await editor.fill(original);
   await page.getByRole("button", { name: "Analyze draft" }).click();
-  for (const label of [
-    "Improve this post",
-    "Improve the hook",
-    "Improve the ending",
-    "Improve the weakest areas",
-  ]) {
-    await page.getByRole("button", { name: label }).click();
-    await expect(
-      page.getByRole("heading", { name: "Suggested draft" }),
-    ).toBeVisible();
-    await expect(page.getByLabel("Suggested draft")).toHaveValue(revised);
-    await expect(editor).toHaveValue(original);
-  }
-  expect(requests).toEqual(["whole-post", "hook", "ending", "weakest-areas"]);
+  await page.getByRole("button", { name: "Improve post" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Suggested draft" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Suggested draft")).toHaveValue(revised);
+  await expect(editor).toHaveValue(original);
+  expect(requests).toEqual(["whole-post"]);
   await expect(page.getByText("Post Potential: 50 out of 100")).toBeAttached();
   await page.getByRole("button", { name: "Use in editor" }).click();
   await expect(editor).toHaveValue(revised);
@@ -91,7 +92,7 @@ test("offers all four actions, preserves the score, and uses a suggestion only o
     page.getByText("Draft changed since this analysis"),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Improve this post" }),
+    page.getByRole("button", { name: "Improve post" }),
   ).toBeDisabled();
 });
 
@@ -120,12 +121,12 @@ test("shows a safe retry and keeps an earlier suggestion visible after editing",
       json: {
         improvementId: "873f5696-f7f1-4525-b070-75d633954b0f",
         status: "suggested",
-        action: "hook",
+        action: "whole-post",
         revisedText: revised,
         focusDimensions: ["hook"],
-        target: "hook",
         changeNote: "Clarified the opening.",
         reviewRequired: true,
+        verification,
       },
     });
   });
@@ -133,7 +134,7 @@ test("shows a safe retry and keeps an earlier suggestion visible after editing",
   const editor = page.getByLabel("LinkedIn draft");
   await editor.fill(original);
   await page.getByRole("button", { name: "Analyze draft" }).click();
-  await page.getByRole("button", { name: "Improve the hook" }).click();
+  await page.getByRole("button", { name: "Improve post" }).click();
   await expect(
     page.getByText("The improvement took too long. Please try again."),
   ).toBeVisible();
@@ -146,7 +147,7 @@ test("shows a safe retry and keeps an earlier suggestion visible after editing",
     page.getByText("This suggestion belongs to the previously analyzed draft."),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Improve the hook" }),
+    page.getByRole("button", { name: "Improve post" }),
   ).toBeDisabled();
 });
 
@@ -160,8 +161,8 @@ test("shows no-safe-change without replacing the draft", async ({ page }) => {
       json: {
         improvementId: "873f5696-f7f1-4525-b070-75d633954b0f",
         status: "no-safe-change",
-        action: "ending",
-        reason: "This ending needs a fact from the author.",
+        action: "whole-post",
+        reason: "This post needs a fact from the author.",
       },
     }),
   );
@@ -169,10 +170,10 @@ test("shows no-safe-change without replacing the draft", async ({ page }) => {
   const editor = page.getByLabel("LinkedIn draft");
   await editor.fill(original);
   await page.getByRole("button", { name: "Analyze draft" }).click();
-  await page.getByRole("button", { name: "Improve the ending" }).click();
-  await expect(page.getByText("No safe change found")).toBeVisible();
+  await page.getByRole("button", { name: "Improve post" }).click();
+  await expect(page.getByText("No verified improvement found")).toBeVisible();
   await expect(
-    page.getByText("This ending needs a fact from the author."),
+    page.getByText("This post needs a fact from the author."),
   ).toBeVisible();
   await expect(editor).toHaveValue(original);
   await expect(page.getByRole("button", { name: "Use in editor" })).toHaveCount(
@@ -195,19 +196,19 @@ test("copies a suggestion and keeps the page usable on a narrow screen", async (
       json: {
         improvementId: "873f5696-f7f1-4525-b070-75d633954b0f",
         status: "suggested",
-        action: "hook",
+        action: "whole-post",
         revisedText: revised,
         focusDimensions: ["hook"],
-        target: "hook",
         changeNote: "Clarified the opening.",
         reviewRequired: true,
+        verification,
       },
     }),
   );
   await page.goto("/");
   await page.getByLabel("LinkedIn draft").fill(original);
   await page.getByRole("button", { name: "Analyze draft" }).click();
-  await page.getByRole("button", { name: "Improve the hook" }).click();
+  await page.getByRole("button", { name: "Improve post" }).click();
   await page.getByRole("button", { name: "Copy suggestion" }).click();
   await expect(page.getByText("Suggestion copied.")).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
@@ -222,40 +223,35 @@ test("copies a suggestion and keeps the page usable on a narrow screen", async (
   ).toBe(true);
 });
 
-test("a new action supersedes an in-flight suggestion", async ({ page }) => {
+test("disables improvement while a request is in flight", async ({ page }) => {
+  let requests = 0;
   await page.route("**/api/evaluations", (route) =>
     route.fulfill({ status: 200, json: evaluation }),
   );
   await page.route("**/api/improvements", async (route) => {
-    const action = (route.request().postDataJSON() as { action: string })
-      .action;
-    if (action === "whole-post")
-      await new Promise((resolve) => setTimeout(resolve, 400));
-    try {
-      await route.fulfill({
-        status: 200,
-        json: {
-          improvementId: "873f5696-f7f1-4525-b070-75d633954b0f",
-          status: "suggested",
-          action,
-          revisedText:
-            action === "hook" ? revised : "An older whole-post suggestion.",
-          focusDimensions: ["hook"],
-          ...(action === "hook" ? { target: "hook" } : {}),
-          changeNote: "Clarified the draft.",
-          reviewRequired: true,
-        },
-      });
-    } catch {
-      /* the first browser request may have been aborted */
-    }
+    requests += 1;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await route.fulfill({
+      status: 200,
+      json: {
+        improvementId: "873f5696-f7f1-4525-b070-75d633954b0f",
+        status: "suggested",
+        action: "whole-post",
+        revisedText: revised,
+        focusDimensions: ["hook"],
+        changeNote: "Clarified the draft.",
+        reviewRequired: true,
+        verification,
+      },
+    });
   });
   await page.goto("/");
   await page.getByLabel("LinkedIn draft").fill(original);
   await page.getByRole("button", { name: "Analyze draft" }).click();
-  await page.getByRole("button", { name: "Improve this post" }).click();
-  await page.getByRole("button", { name: "Improve the hook" }).click();
+  await page.getByRole("button", { name: "Improve post" }).click();
+  await expect(
+    page.getByRole("button", { name: "Improving post..." }),
+  ).toBeDisabled();
   await expect(page.getByLabel("Suggested draft")).toHaveValue(revised);
-  await page.waitForTimeout(500);
-  await expect(page.getByLabel("Suggested draft")).toHaveValue(revised);
+  expect(requests).toBe(1);
 });

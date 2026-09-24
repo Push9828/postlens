@@ -3,7 +3,11 @@ import {
   MAX_POST_CHARACTERS,
   MIN_POST_CHARACTERS,
 } from "../../evaluation/application/evaluate-post.limits";
-import type { EvaluationDimension } from "../../evaluation/domain/evaluation.types";
+import {
+  EVALUATION_DIMENSIONS,
+  type EvaluationDimension,
+} from "../../evaluation/domain/evaluation.types";
+import { POSTLENS_RUBRIC } from "../../evaluation/domain/rubric";
 import {
   type ImprovementAction,
   introducesFactualAnchors,
@@ -13,7 +17,18 @@ import {
 } from "../domain/improvement";
 import { ImprovementError, mapImproverError } from "./improvement-error";
 import { parseImprovementRequest } from "./improvement-request";
-import { type PostImprover, PostImproverError } from "./post-improver";
+import {
+  type ImprovementContext,
+  type PostImprover,
+  PostImproverError,
+} from "./post-improver";
+
+export interface VerifiedScores {
+  readonly originalScore: number;
+  readonly revisedScore: number;
+  readonly overallDelta: number;
+  readonly dimensionDeltas: Readonly<Record<EvaluationDimension, number>>;
+}
 
 export type ImprovementResult =
   | {
@@ -25,6 +40,7 @@ export type ImprovementResult =
       readonly target?: "hook" | "ending";
       readonly changeNote: string;
       readonly reviewRequired: true;
+      readonly verification?: VerifiedScores;
     }
   | {
       readonly improvementId: string;
@@ -61,7 +77,7 @@ export class ImprovePostService {
       request = parseImprovementRequest(input);
       const { content, action, evaluation } = request;
       const focusKeys: readonly EvaluationDimension[] =
-        action === "weakest-areas"
+        action === "weakest-areas" || action === "whole-post"
           ? selectWeakestDimensions(evaluation)
           : action === "hook"
             ? ["hook"]
@@ -78,6 +94,20 @@ export class ImprovePostService {
         action,
         rubric: evaluation.rubric,
         contentType: evaluation.contentType,
+        overallScore: evaluation.overallScore,
+        dimensions: Object.fromEntries(
+          EVALUATION_DIMENSIONS.map((dimension) => [
+            dimension,
+            {
+              level: evaluation.dimensions[dimension].level,
+              score: evaluation.dimensions[dimension].score,
+              explanation: evaluation.dimensions[dimension].explanation,
+              criterion: POSTLENS_RUBRIC.dimensions[dimension],
+            },
+          ]),
+        ) as ImprovementContext["dimensions"],
+        strongestDimension: evaluation.strongestDimension,
+        weakestDimension: evaluation.weakestDimension,
         focus: focusKeys.map((dimension) => ({
           dimension,
           level: evaluation.dimensions[dimension].level,
