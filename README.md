@@ -93,6 +93,21 @@ them in URLs, browser storage, analytics, or client logs. Editing after an
 analysis keeps the result visible but marks it as belonging to an earlier
 version of the draft.
 
+## Post Battle
+
+Switch to `Compare drafts` on the root page to evaluate Version A and Version B
+under the same evaluator configuration and rubric version. The result shows
+both Post Potential scores, all eight dimensions, and signed differences defined
+as B minus A. A tie remains a tie; a partial failure shows the successful draft
+without claiming a winner. Both drafts remain in browser memory while switching
+between analysis and comparison, and editing either draft marks an earlier
+result stale.
+
+`POST /api/comparisons` accepts a strict JSON body with `versionA` and
+`versionB`, each 20–3,000 Unicode characters after trimming. It returns a
+`complete`, `partial`, or `failed` outcome with a comparison ID. The endpoint
+uses `Cache-Control: no-store` and does not persist or return the raw drafts.
+
 ## Evaluation API
 
 `POST /api/evaluations` accepts a strict JSON object containing a LinkedIn
