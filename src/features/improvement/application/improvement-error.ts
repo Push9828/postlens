@@ -1,4 +1,4 @@
-import type { PostImproverErrorKind } from "./post-improver";
+import type { V2ImproverErrorKind } from "../v2/provider-error";
 
 export const IMPROVEMENT_ERRORS = {
   INVALID_REQUEST: {
@@ -78,10 +78,8 @@ export class ImprovementError extends Error {
   }
 }
 
-export function mapImproverError(
-  kind: PostImproverErrorKind,
-): ImprovementError {
-  const code: Record<PostImproverErrorKind, ImprovementErrorCode> = {
+export function mapImproverError(kind: V2ImproverErrorKind): ImprovementError {
+  const code: Record<V2ImproverErrorKind, ImprovementErrorCode> = {
     timeout: "IMPROVEMENT_TIMEOUT",
     "rate-limit": "IMPROVEMENT_BUSY",
     unavailable: "IMPROVEMENT_UNAVAILABLE",
