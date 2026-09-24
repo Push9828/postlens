@@ -115,8 +115,9 @@ export function ImprovementPanel({
         Targeted improvement
       </h2>
       <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-        Choose a focus after reviewing the rubric result. Suggestions keep the
-        original score unchanged.
+        Choose a focus after reviewing the rubric result. A suggestion has no
+        score until you analyze it, and it may score higher or lower than the
+        original.
       </p>
       {isStale ? (
         <p className="mt-3 text-sm text-[var(--warning-text)]">
