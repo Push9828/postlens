@@ -60,8 +60,7 @@ export function DimensionResult({
           {POSTLENS_RUBRIC.dimensions[dimension].question}
         </p>
         <p className="mt-1 max-w-[58ch] leading-6">
-          Level {evaluation.level} of 4:{" "}
-          {POSTLENS_RUBRIC.dimensions[dimension].levels[evaluation.level]}
+          → {POSTLENS_RUBRIC.dimensions[dimension].levels[evaluation.level]}
         </p>
       </details>
     </li>
