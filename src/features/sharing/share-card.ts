@@ -2,36 +2,138 @@ import type { PostEvaluation } from "../evaluation/domain/evaluation.types";
 import { EVALUATION_DIMENSIONS } from "../evaluation/domain/evaluation.types";
 import { DIMENSION_LABELS } from "../evaluation/ui/score-copy";
 
-const escapeXml = (value: string): string =>
-  value.replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&apos;",
-    };
-    return entities[character];
-  });
+export const SHARE_CARD_WIDTH = 1200;
+export const SHARE_CARD_HEIGHT = 630;
 
-export function createShareCardSvg(evaluation: PostEvaluation): string {
+export function drawShareCard(
+  canvas: HTMLCanvasElement,
+  evaluation: PostEvaluation,
+): void {
+  canvas.width = SHARE_CARD_WIDTH;
+  canvas.height = SHARE_CARD_HEIGHT;
+
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas rendering is unavailable.");
+
+  context.fillStyle = "#eaf0f7";
+  context.fillRect(0, 0, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT);
+
+  roundedRect(context, 28, 28, 1144, 574, 28, "#101828");
+  roundedRect(context, 44, 44, 1112, 542, 22, "#17263b");
+
+  context.fillStyle = "#84adff";
+  context.fillRect(84, 88, 5, 38);
+  context.textBaseline = "alphabetic";
+  context.fillStyle = "#ffffff";
+  context.font = "700 30px Arial, sans-serif";
+  context.fillText("PostLens", 108, 117);
+
+  context.fillStyle = "#b8c7dc";
+  context.font = "600 17px Arial, sans-serif";
+  context.fillText("POST POTENTIAL", 108, 168);
+
+  context.fillStyle = "#ffffff";
+  context.font = "700 206px Arial, sans-serif";
+  context.fillText(String(evaluation.overallScore), 92, 391);
+  const scoreWidth = context.measureText(String(evaluation.overallScore)).width;
+  context.fillStyle = "#a9b8cc";
+  context.font = "600 40px Arial, sans-serif";
+  context.fillText("/ 100", 105 + scoreWidth, 387);
+
+  roundedRect(context, 94, 430, 190, 42, 21, "#233d62");
+  context.fillStyle = "#c9dcff";
+  context.font = "600 18px Arial, sans-serif";
+  context.fillText(evaluation.scoreInterpretation.label, 114, 457, 150);
+
+  context.fillStyle = "#a9b8cc";
+  context.font = "400 18px Arial, sans-serif";
+  context.fillText("A structured review of your draft", 94, 500);
+
+  context.strokeStyle = "#3b4d66";
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(682, 92);
+  context.lineTo(682, 486);
+  context.stroke();
+
+  context.fillStyle = "#a9b8cc";
+  context.font = "600 16px Arial, sans-serif";
+  context.fillText("STRONGEST DIMENSIONS", 730, 121);
+
   const strongest = [...EVALUATION_DIMENSIONS]
     .sort(
-      (a, b) => evaluation.dimensions[b].score - evaluation.dimensions[a].score,
+      (a, b) =>
+        evaluation.dimensions[b].score - evaluation.dimensions[a].score ||
+        EVALUATION_DIMENSIONS.indexOf(a) - EVALUATION_DIMENSIONS.indexOf(b),
     )
-    .slice(0, 2);
-  const [first, second] = strongest;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="PostLens rubric result">
-<rect width="1200" height="630" fill="#101828"/>
-<rect x="54" y="54" width="1092" height="522" rx="32" fill="#1d2939" stroke="#475467"/>
-<text x="104" y="126" fill="#84adff" font-family="Arial,sans-serif" font-size="30" font-weight="700">PostLens</text>
-<text x="104" y="190" fill="#d0d5dd" font-family="Arial,sans-serif" font-size="26">POST POTENTIAL · RUBRIC RESULT</text>
-<text x="100" y="390" fill="#ffffff" font-family="Arial,sans-serif" font-size="190" font-weight="700">${evaluation.overallScore}<tspan fill="#98a2b3" font-size="56"> / 100</tspan></text>
-<text x="740" y="286" fill="#d0d5dd" font-family="Arial,sans-serif" font-size="24">STRONGEST DIMENSIONS</text>
-<text x="740" y="337" fill="#ffffff" font-family="Arial,sans-serif" font-size="32">${escapeXml(DIMENSION_LABELS[first])} · ${evaluation.dimensions[first].score}</text>
-<text x="740" y="392" fill="#ffffff" font-family="Arial,sans-serif" font-size="32">${escapeXml(DIMENSION_LABELS[second])} · ${evaluation.dimensions[second].score}</text>
-<path d="M104 446H1096" stroke="#475467"/>
-<text x="104" y="501" fill="#d0d5dd" font-family="Arial,sans-serif" font-size="23">Evaluated against PostLens rubric ${escapeXml(evaluation.rubric.version)}</text>
-<text x="104" y="542" fill="#98a2b3" font-family="Arial,sans-serif" font-size="21">A writing rubric, not a prediction of reach or engagement.</text>
-</svg>`;
+    .slice(0, 3);
+
+  strongest.forEach((dimension, index) => {
+    const y = 190 + index * 91;
+    context.fillStyle = "#84adff";
+    context.font = "600 15px Arial, sans-serif";
+    context.fillText(String(index + 1).padStart(2, "0"), 730, y);
+
+    context.fillStyle = "#ffffff";
+    context.font = "600 25px Arial, sans-serif";
+    context.fillText(DIMENSION_LABELS[dimension], 782, y, 270);
+
+    context.textAlign = "right";
+    context.fillStyle = "#d7e5ff";
+    context.font = "700 24px Arial, sans-serif";
+    context.fillText(String(evaluation.dimensions[dimension].score), 1090, y);
+    context.textAlign = "left";
+
+    if (index < strongest.length - 1) {
+      context.strokeStyle = "#34465f";
+      context.beginPath();
+      context.moveTo(782, y + 28);
+      context.lineTo(1090, y + 28);
+      context.stroke();
+    }
+  });
+
+  context.strokeStyle = "#3b4d66";
+  context.beginPath();
+  context.moveTo(92, 526);
+  context.lineTo(1108, 526);
+  context.stroke();
+
+  context.textAlign = "left";
+  context.fillStyle = "#a9b8cc";
+  context.font = "400 15px Arial, sans-serif";
+  context.fillText(
+    "A writing rubric, not a prediction of reach or engagement.",
+    94,
+    560,
+  );
+}
+
+function roundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  color: string,
+): void {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - radius,
+    y + height,
+  );
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
+  context.fillStyle = color;
+  context.fill();
 }
