@@ -16,6 +16,7 @@
     "jev:experiment": "node --env-file-if-exists=.env --import tsx scripts/jev-experiment.ts",
     "jev:batching": "node --env-file-if-exists=.env --import tsx scripts/jev-batching-experiment.ts",
     "benchmark": "node --env-file-if-exists=.env --import tsx scripts/evaluation-benchmark.ts",
+    "benchmark:v2": "node --env-file-if-exists=.env --import tsx scripts/evaluation-v2-benchmark.ts",
     "benchmark:labels": "node --import tsx scripts/benchmark-labels.ts"
   },
   "dependencies": {
