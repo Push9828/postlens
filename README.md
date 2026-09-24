@@ -56,8 +56,13 @@ README, methodology, sharing, deployment, launch content.
 
 ```bash
 pnpm install
+cp -n .env.example .env
 pnpm dev
 ```
+
+Set `TYPESAFE_API_KEY` for analysis and comparison, and `OPENAI_API_KEY`
+for targeted improvement. The keys stay server-side. Local development uses
+a process-local request quota; production uses a shared Redis quota.
 
 Before committing changes, run:
 
@@ -93,6 +98,11 @@ them in URLs, browser storage, analytics, or client logs. Editing after an
 analysis keeps the result visible but marks it as belonging to an earlier
 version of the draft.
 
+An empty editor offers two project-written sample drafts. Each dimension can
+show its rubric question and selected level. A current result can be downloaded
+as an SVG score card or copied as a text summary. Both contain only rubric
+results and a reminder that the score is not a performance prediction.
+
 ## Post Battle
 
 Switch to `Compare drafts` on the root page to evaluate Version A and Version B
@@ -102,6 +112,10 @@ as B minus A. A tie remains a tie; a partial failure shows the successful draft
 without claiming a winner. Both drafts remain in browser memory while switching
 between analysis and comparison, and editing either draft marks an earlier
 result stale.
+
+After requesting an improvement, `Compare with original` places the analyzed
+draft and suggested revision into Post Battle. You must submit the comparison
+to get fresh rubric scores; the suggestion itself is never pre-scored.
 
 `POST /api/comparisons` accepts a strict JSON body with `versionA` and
 `versionB`, each 20–3,000 Unicode characters after trimming. It returns a
@@ -133,6 +147,24 @@ TYPESAFE_TIMEOUT_MS=10000
 
 Missing or invalid provider configuration becomes a controlled `503` response
 and does not prevent the application from building.
+
+## Production on Vercel
+
+Deploy this Next.js app as a Vercel project. Configure the server-side variables
+in `.env.example`, including a writable Upstash Redis REST URL/token and a
+random `RATE_LIMIT_HASH_SECRET` of at least 32 characters. Keep the same hash
+secret across deployments. The API fails closed if its production quota store
+or trusted client address is unavailable. `/api/health` checks required
+configuration without calling an AI provider; a ready response does not prove
+that either provider is reachable.
+
+The three provider-backed POST routes have byte limits and shared per-client
+minute/hour quotas. Analysis counts as one unit, comparison as two, and
+improvement as one. Requests over quota return `429` and `Retry-After`;
+oversized requests return `413`. Both responses use safe application errors.
+Set provider-side spend caps before opening public traffic. Review Vercel and
+Redis log retention and access because infrastructure logs can have different
+capture defaults from the application's metadata-only events.
 
 ## Targeted Improvement
 
