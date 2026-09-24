@@ -1,4 +1,5 @@
 import { EvaluationWorkspace } from "@/features/evaluation/ui/evaluation-workspace";
+import { ThemeToggle } from "@/features/theme/ui/theme-toggle";
 
 export default function Home() {
   return (
@@ -11,9 +12,12 @@ export default function Home() {
           >
             PostLens
           </a>
-          <p className="hidden text-sm text-[var(--text-subtle)] sm:block">
-            A transparent rubric for LinkedIn drafts
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="hidden text-sm text-[var(--text-subtle)] sm:block">
+              A transparent rubric for LinkedIn drafts
+            </p>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
