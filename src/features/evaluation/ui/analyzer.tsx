@@ -26,8 +26,12 @@ const FIELD_ERROR_CODES = new Set([
   "POST_TOO_LONG",
 ]);
 
-export function Analyzer() {
-  const [content, setContent] = useState("");
+interface AnalyzerProps {
+  readonly content: string;
+  readonly onContentChange: (content: string) => void;
+}
+
+export function Analyzer({ content, onContentChange }: AnalyzerProps) {
   const [showEmptyError, setShowEmptyError] = useState(false);
   const [state, dispatch] = useReducer(analyzerReducer, INITIAL_ANALYZER_STATE);
   const requestSequence = useRef(0);
@@ -113,7 +117,7 @@ export function Analyzer() {
   };
 
   const handleContentChange = (nextContent: string) => {
-    setContent(nextContent);
+    onContentChange(nextContent);
     setShowEmptyError(false);
   };
 

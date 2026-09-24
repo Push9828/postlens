@@ -1,4 +1,4 @@
-import { Analyzer } from "@/features/evaluation/ui/analyzer";
+import { EvaluationWorkspace } from "@/features/evaluation/ui/evaluation-workspace";
 
 export default function Home() {
   return (
@@ -31,7 +31,7 @@ export default function Home() {
           </p>
         </section>
 
-        <Analyzer />
+        <EvaluationWorkspace />
       </main>
     </div>
   );

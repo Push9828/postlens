@@ -35,7 +35,7 @@ const dimensionShape = Object.fromEntries(
 const evaluationDimensionSchema = z.enum(EVALUATION_DIMENSIONS);
 const contentTypeSchema = z.enum(CONTENT_TYPES);
 
-const postEvaluationSchema = z.strictObject({
+export const postEvaluationSchema = z.strictObject({
   rubric: z.strictObject({
     id: z.string().min(1),
     version: z.string().min(1),
@@ -65,7 +65,7 @@ const successResponseSchema = z.strictObject({
   evaluation: postEvaluationSchema,
 });
 
-const errorCodeSchema = z.enum([
+export const errorCodeSchema = z.enum([
   "INVALID_REQUEST",
   "POST_TOO_SHORT",
   "POST_TOO_LONG",
