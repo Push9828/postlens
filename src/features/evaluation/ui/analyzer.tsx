@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
+import { ImprovementPanel } from "../../improvement/ui/improvement-panel";
 import {
   countUnicodeCodePoints,
   MAX_POST_CHARACTERS,
@@ -149,11 +150,24 @@ export function Analyzer({ content, onContentChange }: AnalyzerProps) {
         {state.status === "idle" ? <AnalyzerIntroduction /> : null}
         {state.status === "submitting" ? <EvaluationLoading /> : null}
         {state.status === "success" ? (
-          <EvaluationResults
-            result={state.result}
-            isStale={isStale}
-            headingRef={resultHeadingRef}
-          />
+          <>
+            <EvaluationResults
+              result={state.result}
+              isStale={isStale}
+              headingRef={resultHeadingRef}
+            />
+            <ImprovementPanel
+              key={state.result.evaluationId}
+              content={content}
+              submittedContent={state.submittedContent}
+              evaluationResult={state.result}
+              isStale={isStale}
+              onUse={(text) => {
+                handleContentChange(text);
+                textareaRef.current?.focus();
+              }}
+            />
+          </>
         ) : null}
         {showResultError && state.status === "failure" ? (
           <EvaluationErrorPanel
