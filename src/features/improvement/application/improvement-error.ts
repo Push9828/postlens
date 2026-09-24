@@ -16,6 +16,11 @@ export const IMPROVEMENT_ERRORS = {
     retryable: false,
     status: 400,
   },
+  REQUEST_TOO_LARGE: {
+    message: "The request is too large.",
+    retryable: false,
+    status: 413,
+  },
   STALE_RUBRIC: {
     message: "Analyze this draft again with the current rubric.",
     retryable: false,

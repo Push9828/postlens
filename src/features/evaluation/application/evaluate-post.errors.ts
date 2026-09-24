@@ -7,6 +7,7 @@ export type EvaluatePostErrorCode =
   | "INVALID_REQUEST"
   | "POST_TOO_SHORT"
   | "POST_TOO_LONG"
+  | "REQUEST_TOO_LARGE"
   | "UNSUPPORTED_MEDIA_TYPE"
   | "EVALUATION_TIMEOUT"
   | "EVALUATION_BUSY"
@@ -30,6 +31,10 @@ const ERROR_DEFINITIONS = {
   },
   POST_TOO_LONG: {
     message: "The post must contain no more than 3,000 characters.",
+    retryable: false,
+  },
+  REQUEST_TOO_LARGE: {
+    message: "The request is too large.",
     retryable: false,
   },
   UNSUPPORTED_MEDIA_TYPE: {
