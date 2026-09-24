@@ -193,14 +193,3 @@ latency, failures, scores, probabilities, token usage, model identity, and
 rubric identity in a local experiment output file. It never writes raw draft
 text. `jev:batching` compares all dimension questions in one request with
 parallel one-question requests across three fixtures and three repetitions.
-
-## V1 Non-Goals
-
-- browser extension
-- LinkedIn scraping
-- social automation
-- auth
-- billing
-- scheduler
-- analytics dashboard
-- virality prediction
