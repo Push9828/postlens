@@ -36,7 +36,13 @@ export function getV2EvaluationService(): V2EvaluatePostService {
       requestedModel: config.data.TYPESAFE_DEFAULT_MODEL,
     }),
     evaluatorId: "jev",
-    observe: (event) => console.info(JSON.stringify(event)),
+    observe: (event) =>
+      console.info(
+        JSON.stringify({
+          ...event,
+          requestedModel: config.data.TYPESAFE_DEFAULT_MODEL,
+        }),
+      ),
   });
   return service;
 }

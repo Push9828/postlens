@@ -4,12 +4,7 @@ import {
   v2EvaluationErrorResponseSchema,
   v2EvaluationResponseSchema,
 } from "../evaluation.schema";
-import {
-  calculatePostScores,
-  resolveWeightProfile,
-  scoreRawDimensions,
-} from "../scoring";
-import { EVALUATION_DIMENSIONS } from "../types";
+import { isConsistentV2Evaluation } from "../resolve-evaluation";
 
 export class V2EvaluationClientError extends Error {
   override readonly name = "V2EvaluationClientError";
@@ -80,51 +75,13 @@ export async function requestV2PostEvaluation(
   }
 
   const parsed = v2EvaluationResponseSchema.safeParse(body);
-  if (!parsed.success || !isConsistent(parsed.data.evaluation))
+  if (
+    !parsed.success ||
+    parsed.data.evaluation.resolvedProfile.source === "user-override" ||
+    !isConsistentV2Evaluation(parsed.data.evaluation)
+  )
     throw invalidResponse();
   return parsed.data satisfies V2EvaluatePostResult;
-}
-
-function isConsistent(evaluation: V2EvaluatePostResult["evaluation"]): boolean {
-  try {
-    const dimensions = scoreRawDimensions(evaluation.rawEvaluation);
-    if (
-      EVALUATION_DIMENSIONS.some(
-        (dimension) =>
-          dimensions[dimension] !== evaluation.dimensionScores[dimension],
-      )
-    )
-      return false;
-    const profile = resolveWeightProfile(evaluation.detectedClassification);
-    if (
-      profile.source !== evaluation.resolvedProfile.source ||
-      profile.resolvedPostType !==
-        evaluation.resolvedProfile.resolvedPostType ||
-      profile.secondaryType !== evaluation.resolvedProfile.secondaryType ||
-      EVALUATION_DIMENSIONS.some(
-        (dimension) =>
-          Math.abs(
-            profile.qualityWeights[dimension] -
-              evaluation.resolvedProfile.qualityWeights[dimension],
-          ) > 1e-8 ||
-          Math.abs(
-            profile.engagementWeights[dimension] -
-              evaluation.resolvedProfile.engagementWeights[dimension],
-          ) > 1e-8,
-      )
-    )
-      return false;
-    const scores = calculatePostScores(dimensions, profile);
-    return (
-      Math.abs(scores.contentQuality - evaluation.scores.contentQuality) <
-        1e-8 &&
-      Math.abs(
-        scores.engagementPotential - evaluation.scores.engagementPotential,
-      ) < 1e-8
-    );
-  } catch {
-    return false;
-  }
 }
 
 function invalidResponse(): V2EvaluationClientError {
