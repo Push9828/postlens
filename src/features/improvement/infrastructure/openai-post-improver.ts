@@ -74,7 +74,7 @@ export class OpenAIPostImprover implements PostImprover {
               "Preserve facts, technical claims, personal experiences, author intent, and overall voice. Never invent experiences, statistics, achievements, sources, or claims.",
               "Avoid fake controversy, engagement bait, excessive hashtags or emojis, and generic motivational filler.",
               "For hook or ending, return only a replacement for the supplied target paragraph, with no blank paragraph break. For whole-post or weakest-areas, return the full revised draft.",
-              "Return status suggested with text and a brief changeNote. If a useful safe edit is impossible, return no-safe-change with a brief reason and empty text and changeNote. Never calculate a score or predict reach.",
+              "Return status suggested with text, a brief changeNote, and an empty reason. If a useful safe edit is impossible, return no-safe-change with a brief reason and empty text and changeNote. Never calculate a score or predict reach.",
             ].join(" "),
             input: JSON.stringify({
               draft: context.content,
@@ -104,11 +104,12 @@ export class OpenAIPostImprover implements PostImprover {
     try {
       body = await response.json();
     } catch {
-      throw new PostImproverError("invalid-response");
+      throw invalidResponse("unreadable-json");
     }
     const parsed = responseSchema.safeParse(body);
-    if (!parsed.success || parsed.data.status !== "completed")
-      throw new PostImproverError("invalid-response");
+    if (!parsed.success) throw invalidResponse("response-shape");
+    if (parsed.data.status !== "completed")
+      throw invalidResponse("response-not-completed");
     const texts = parsed.data.output.flatMap((item) =>
       item.type === "message"
         ? (item.content
@@ -117,34 +118,52 @@ export class OpenAIPostImprover implements PostImprover {
         : [],
     );
     if (texts.length !== 1 || typeof texts[0] !== "string")
-      throw new PostImproverError("invalid-response");
+      throw invalidResponse("output-text-count");
     let raw: unknown;
     try {
       raw = JSON.parse(texts[0]);
     } catch {
-      throw new PostImproverError("invalid-response");
+      throw invalidResponse("output-json");
     }
     const output = providerOutputSchema.safeParse(raw);
-    if (!output.success) throw new PostImproverError("invalid-response");
+    if (!output.success) throw invalidResponse("output-shape");
     if (output.data.status === "no-safe-change") {
       if (
         output.data.text ||
         output.data.changeNote ||
         !output.data.reason.trim()
       )
-        throw new PostImproverError("invalid-response");
+        throw invalidResponse("no-safe-change-fields");
       return { status: "no-safe-change", reason: output.data.reason };
     }
-    if (
-      !output.data.text.trim() ||
-      !output.data.changeNote.trim() ||
-      output.data.reason
-    )
-      throw new PostImproverError("invalid-response");
+    if (!output.data.text.trim())
+      throw invalidResponse("suggestion-empty-text");
+    if (!output.data.changeNote.trim())
+      throw invalidResponse("suggestion-empty-change-note");
+    // A suggested revision is determined by its text and change note. Some
+    // valid provider outputs also populate reason; it is not shown to users.
     return {
       status: "suggested",
       text: output.data.text,
       changeNote: output.data.changeNote,
     };
   }
+}
+
+type InvalidResponseStage =
+  | "unreadable-json"
+  | "response-shape"
+  | "response-not-completed"
+  | "output-text-count"
+  | "output-json"
+  | "output-shape"
+  | "no-safe-change-fields"
+  | "suggestion-empty-text"
+  | "suggestion-empty-change-note";
+
+function invalidResponse(stage: InvalidResponseStage): PostImproverError {
+  console.warn(
+    JSON.stringify({ type: "improvement.provider-invalid-response", stage }),
+  );
+  return new PostImproverError("invalid-response");
 }
