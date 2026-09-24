@@ -14,55 +14,30 @@ PostLens does **not** claim to predict virality.
 
 It evaluates a draft against an explicit rubric.
 
-## Start Here
-
-Read:
-
-1. `docs/PRD.md`
-2. `AGENTS.md`
-3. `docs/architecture.md`
-4. `docs/evaluation-methodology.md`
-
-## Initial Milestones
-
-### M0 — Foundation
-Domain types, rubric, deterministic scoring, tests.
-
-### M1 — Jev Spike
-CLI evaluator, Jev integration, fixtures, repeatability and latency experiments.
-
-### M2 — Evaluation API
-Production evaluator abstraction, validation, errors.
-
-### M3 — Analyzer
-Paste → analyze → results.
-
-### M4 — Post Battle
-A/B comparison.
-
-### M5 — Improvement
-LLM-powered targeted rewriting.
-
-### M6 — Evaluation Quality
-Human-labelled dataset and consistency tooling.
-
-### M7 — Benchmark
-Jev vs generative LLM.
-
-### M8 — Launch
-README, methodology, sharing, deployment, launch content.
-
 ## Development
 
 ```bash
 pnpm install
 cp -n .env.example .env
+```
+
+### API keys
+
+Edit `.env` and set `TYPESAFE_API_KEY` using a key from your TypeSafe account.
+This enables analysis and draft comparison. Set `OPENAI_API_KEY` using a key
+from your OpenAI account to enable post improvement. Both keys are needed to
+use the complete flow; without OpenAI configured, analysis and comparison
+still work, but improvement is unavailable. The keys are read on the server
+and `.env` is gitignored. Never commit real API keys.
+
+Start the local server after adding at least your TypeSafe key:
+
+```bash
 pnpm dev
 ```
 
-Set `TYPESAFE_API_KEY` for analysis and comparison, and `OPENAI_API_KEY`
-for targeted improvement. The keys stay server-side. Local development uses
-a process-local request quota; production uses a shared Redis quota.
+Local development uses a process-local request quota; production uses a shared
+Redis quota.
 
 Before committing changes, run:
 
@@ -96,7 +71,9 @@ not predict reach or virality.
 Drafts remain in transient browser memory only. The analyzer does not place
 them in URLs, browser storage, analytics, or client logs. Editing after an
 analysis keeps the result visible but marks it as belonging to an earlier
-version of the draft.
+version of the draft. Analysis sends draft text to Jev for evaluation;
+improvement also sends it to OpenAI to generate a revision. Review those
+providers' data practices before submitting sensitive content.
 
 An empty editor offers two project-written sample drafts. Each dimension can
 show its rubric question and selected level. A current result can be downloaded
@@ -160,7 +137,8 @@ that either provider is reachable.
 
 The three provider-backed POST routes have byte limits and shared per-client
 minute/hour quotas. Analysis counts as one unit, comparison as two, and
-improvement as three (one generation and two evaluations). Requests over quota return `429` and `Retry-After`;
+improvement as three (one generation and two evaluations). Requests over quota
+return `429` and `Retry-After`;
 oversized requests return `413`. Both responses use safe application errors.
 Set provider-side spend caps before opening public traffic. Review Vercel and
 Redis log retention and access because infrastructure logs can have different
@@ -175,8 +153,9 @@ the original and proposed drafts together, then shows a suggestion only when
 the paired check gains at least three points with at most one one-level
 dimension regression.
 If the candidate does not pass, it reports that no verified improvement was
-found. A suggestion shows the paired check scores and dimension changes; the existing analysis stays
-visible until you analyze again. Evaluator judgments can vary between runs.
+found. A suggestion shows the paired check scores and dimension changes; the
+existing analysis stays visible until you analyze again. Evaluator judgments
+can vary between runs.
 Review facts and voice before posting.
 
 `POST /api/improvements` accepts a strict JSON object with `content`, `action`,
@@ -211,16 +190,9 @@ pnpm jev:batching
 `jev:experiment` evaluates 12 synthetic, project-owned fixtures in both
 rubric-level and reason-code explanation modes. It records repeatability,
 latency, failures, scores, probabilities, token usage, model identity, and
-rubric identity under the private `content/experiments/` workspace. It never
-writes raw draft text. `jev:batching` compares all dimension questions in one
-request with parallel one-question requests across three fixtures and three
-repetitions.
-
-## Private Content Workspace
-
-The `content/` directory is intentionally gitignored.
-
-Codex should capture useful build discoveries there according to `AGENTS.md`.
+rubric identity in a local experiment output file. It never writes raw draft
+text. `jev:batching` compares all dimension questions in one request with
+parallel one-question requests across three fixtures and three repetitions.
 
 ## V1 Non-Goals
 
