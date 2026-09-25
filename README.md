@@ -135,6 +135,10 @@ or trusted client address is unavailable. `/api/health` checks required
 configuration without calling an AI provider; a ready response does not prove
 that either provider is reachable.
 
+Enable Web Analytics in the Vercel project's Analytics tab and deploy the app.
+The root layout includes Vercel's pageview tracker. It records page visits and
+does not send draft text or evaluation results as custom events.
+
 The three provider-backed POST routes have byte limits and shared per-client
 minute/hour quotas. Analysis counts as one unit, comparison as two, and
 improvement as three (one generation and two evaluations). Requests over quota
